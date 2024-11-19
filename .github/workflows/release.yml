@@ -44,12 +44,12 @@ jobs:
       - name: Download Ubuntu Executable
         uses: actions/download-artifact@v3
         with:
-          name: ubuntu-latest-executable
+          name: email_sender_ubuntu-latest
 
       - name: Download Windows Executable
         uses: actions/download-artifact@v3
         with:
-          name: windows-latest-executable
+          name: email_sender_windows-latest
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
