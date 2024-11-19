@@ -35,12 +35,15 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: email_sender-${{ matrix.os }}
-          path: dist/*
-
+          path: dist/email_sender
+          
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Download Ubuntu Executable
         uses: actions/download-artifact@v3
         with:
@@ -55,6 +58,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dist/*
+            email_sender-ubuntu-latest/email_sender
+            email_sender-windows-latest/email_sender
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
