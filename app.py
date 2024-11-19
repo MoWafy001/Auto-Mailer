@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, Toplevel
-from tkinterhtml import HtmlFrame
+from tkhtmlview import HTMLScrolledText
 import pandas as pd
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
@@ -84,7 +84,7 @@ class EmailSenderApp:
 
         # Render Preview
         ttk.Label(tab, text="Preview with Dummy Data:").pack(pady=5)
-        self.preview_frame = HtmlFrame(tab, horizontal_scrollbar="auto")
+        self.preview_frame = HTMLScrolledText(tab)
         self.preview_frame.pack(fill="both", expand=True)
 
         self.update_preview()
@@ -112,9 +112,7 @@ class EmailSenderApp:
 
         # Example Email
         ttk.Label(inner_frame, text="Example Email:").pack(pady=5)
-        self.example_email_frame = HtmlFrame(inner_frame, horizontal_scrollbar="auto", vertical_scrollbar="auto", width=799, height=200)
-        self.example_email_frame.grid_propagate(False)
-        self.example_email_frame.pack_propagate(False)
+        self.example_email_frame = HTMLScrolledText(inner_frame)
         self.example_email_frame.pack(fill='x', expand=False)
         self.example_email_frame.pack(pady=5)
 
@@ -216,7 +214,7 @@ class EmailSenderApp:
     def update_preview(self):
         dummy_data = {"Name": "John Doe", "Email": "john.doe@example.com"}
         filled_template = self.template.get().format(**dummy_data)
-        self.preview_frame.set_content(filled_template)
+        self.preview_frame.set_html(filled_template)
 
     def update_email_summary(self):
         if self.file_data is not None:
@@ -227,7 +225,7 @@ class EmailSenderApp:
         if self.file_data is not None and not self.file_data.empty:
             example_row = self.file_data.iloc[0].to_dict()
             filled_template = self.template.get().format(**example_row)
-            self.example_email_frame.set_content(filled_template)
+            self.example_email_frame.set_html(filled_template)
 
     def show_send_status_window(self):
         if self.file_data is None:
