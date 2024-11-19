@@ -1,14 +1,13 @@
+# Auto Mailer
+Python Tkinter app used to automate sending emails using SendGrid. It works by extracting emails from a csv/xls/xlsx file then automatically send an email to each user.
+
 <!-- vim-markdown-toc GFM -->
 
-* [Auto Mailer](#auto-mailer)
 * [Usage](#usage)
 * [Install](#install)
 * [Running The App](#running-the-app)
 
 <!-- vim-markdown-toc -->
-
-# Auto Mailer
-Python Tkinter app used to automate sending emails using SendGrid. It works by extracting emails from a csv/xls/xlsx file then automatically send an email to each user.
 
 # Usage
 1. Select a file to extract the data from. `(People Tab)`
