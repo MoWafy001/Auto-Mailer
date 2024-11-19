@@ -61,9 +61,11 @@ class EmailSenderApp:
         search_entry.bind("<KeyRelease>", lambda event: self.debounced_search())
 
         # Treeview to display data
-        self.tree = ttk.Treeview(tab, columns=("Name", "Email"), show="headings")
+        self.tree = ttk.Treeview(tab, columns=("Name", "Email", "Country", "Title"), show="headings")
         self.tree.heading("Name", text="Name")
         self.tree.heading("Email", text="Email")
+        self.tree.heading("Country", text="Country")
+        self.tree.heading("Title", text="Title")
         self.tree.pack(fill="both", expand=True, pady=5)
 
         # Total Count
@@ -89,12 +91,10 @@ class EmailSenderApp:
 
         self.update_preview()
 
-    # vertical scrollable tab
     def create_send_emails_tab(self):
         tab = ttk.Frame(self.notebook)
         self.notebook.add(tab, text="Send Emails")
 
-        # scrollable frame
         canvas = tk.Canvas(tab)
         canvas.pack(side="left", fill="both", expand=True)
 
@@ -166,7 +166,9 @@ class EmailSenderApp:
             for _, row in self.file_data.iterrows():
                 name = row.get("Name", "")
                 email = row.get("Email", "")
-                self.tree.insert("", "end", values=(name, email))
+                country = row.get("Country", "")
+                title = row.get("Title", "")
+                self.tree.insert("", "end", values=(name, email, country, title))
 
             self.count_label.config(text=f"Total People: {len(self.file_data)}")
 
@@ -182,7 +184,10 @@ class EmailSenderApp:
             return
 
         filtered_data = self.file_data[self.file_data.apply(
-            lambda row: query in str(row["Name"]).lower() or query in str(row["Email"]).lower(),
+            lambda row: query in str(row["Name"]).lower()
+                        or query in str(row["Email"]).lower()
+                        or query in str(row["Country"]).lower()
+                        or query in str(row["Title"]).lower(),
             axis=1
         )]
 
@@ -193,7 +198,12 @@ class EmailSenderApp:
             self.tree.insert(
                 "",
                 "end",
-                values=(row.get("Name", ""), row.get("Email", ""))
+                values=(
+                    row.get("Name", ""),
+                    row.get("Email", ""),
+                    row.get("Country", ""),
+                    row.get("Title", "")
+                )
             )
 
         self.count_label.config(text=f"Total People: {len(filtered_data)}")
@@ -209,7 +219,12 @@ class EmailSenderApp:
         self.save_storage()
 
     def update_preview(self):
-        dummy_data = {"Name": "John Doe", "Email": "john.doe@example.com"}
+        dummy_data = {
+            "Name": "John Doe",
+            "Email": "john.doe@example.com",
+            "Country": "USA",
+            "Title": "Mr."
+        }
         filled_template = self.template.get().format(**dummy_data)
         self.preview_frame.set_html(filled_template)
 
@@ -230,83 +245,65 @@ class EmailSenderApp:
             return
 
         if not self.api_token.get() or not self.from_email.get() or not self.title.get():
-            messagebox.showerror("Error", "SendGrid API token, From Email or Title is missing!")
+            messagebox.showerror("Error", "Please complete all settings before sending emails!")
             return
 
         status_window = Toplevel(self.root)
-        status_window.title("Send Status")
-        ttk.Label(status_window, text="Sending emails...").pack(pady=10)
+        status_window.title("Email Sending Status")
+        status_window.geometry("400x300")
 
-        progress = ttk.Progressbar(status_window, orient="horizontal", mode="determinate", length=300)
-        progress.pack(pady=10)
-        progress["maximum"] = len(self.file_data)
-        progress["value"] = 0
+        text_area = tk.Text(status_window, wrap="word")
+        text_area.pack(fill="both", expand=True)
 
-        # log text
-        self.log_text = tk.Text(status_window, height=10, width=60, wrap="word")
-        self.log_text.pack(pady=10)
-        self.log_text.config(state=tk.DISABLED)
+        for _, row in self.file_data.iterrows():
+            try:
+                name = row.get("Name", "")
+                email = row.get("Email", "")
+                country = row.get("Country", "")
+                title = row.get("Title", "")
 
-        try:
-            for _, row in self.file_data.iterrows():
-                email_content = self.template.get().format(**row)
-                email = Mail(
-                    from_email=self.from_email.get(),
-                    to_emails=row["Email"],
-                    subject=self.title.get(),
-                    html_content=email_content
-                )
-                sg_client = SendGridAPIClient(self.api_token.get())
-                response = sg_client.send(email)
+                email_body = self.template.get().format(Name=name, Email=email, Country=country, Title=title)
+                self.send_email(email, self.title.get(), email_body)
 
-                progress["value"] += 1
-                if response.status_code != 202:
-                    self.log(f"Failed to send email to {row['Email']}: {response.body}")
-                    print(response.body)
-                else:
-                    self.log(f"Email sent to {row['Email']}")
-                self.root.update_idletasks()
+                text_area.insert("end", f"Sent email to {name} ({email})\n")
+                text_area.see("end")
+                text_area.update()
+            except Exception as e:
+                text_area.insert("end", f"Failed to send email to {row.get('Email', '')}: {e}\n")
+                text_area.see("end")
+                text_area.update()
 
-            messagebox.showinfo("Success", "Emails sent successfully!")
+    def send_email(self, to_email, subject, content):
+        message = Mail(
+            from_email=self.from_email.get(),
+            to_emails=to_email,
+            subject=subject,
+            html_content=content
+        )
+        sg = SendGridAPIClient(self.api_token.get())
+        sg.send(message)
 
-        except Exception as e:
-            messagebox.showerror("Error", f"Error sending emails: {e}")
-            print(e)
-        finally:
-            status_window.destroy()
-
-    def log(self, message):
-        self.log_text.config(state=tk.NORMAL)
-        self.log_text.insert(tk.END, f"{message}\n")
-        self.log_text.config(state=tk.DISABLED)
+    def save_storage(self):
+        data = {
+            "api_token": self.api_token.get(),
+            "template": self.template.get(),
+            "from_email": self.from_email.get(),
+            "title": self.title.get()
+        }
+        with open(self.STORAGE_FILE, "w") as f:
+            json.dump(data, f)
 
     def load_storage(self):
         if os.path.exists(self.STORAGE_FILE):
-            with open(self.STORAGE_FILE, "r") as file:
-                data = json.load(file)
-                self.api_token.set(data.get("api_token", "").replace("\n", "").replace("\r", "").strip())
-                self.template.set(data.get("template", "").replace("\n", "").strip())
-                self.from_email.set(data.get("from_email", "").replace("\n", "").replace("\r", "").strip())
-                self.title.set(data.get("title", "").replace("\n", "").replace("\r", "").strip())
-
-    def save_storage(self):
-        self.api_token.set(self.api_token.get().replace("\n", "").replace("\r", "").strip())
-        self.template.set(self.template.get().strip())
-        self.from_email.set(self.from_email.get().replace("\n", "").replace("\r", "").strip())
-        self.title.set(self.title.get().replace("\n", "").replace("\r", "").strip())
-
-        data = {
-            "api_token": self.api_token.get().replace("\n", "").replace("\r", "").strip(),
-            "template": self.template.get().strip(),
-            "from_email": self.from_email.get().replace("\n", "").replace("\r", "").strip(),
-            "title": self.title.get().replace("\n", "").replace("\r", "").strip()
-        }
-        with open(self.STORAGE_FILE, "w") as file:
-            json.dump(data, file, indent=4)
+            with open(self.STORAGE_FILE, "r") as f:
+                data = json.load(f)
+                self.api_token.set(data.get("api_token", ""))
+                self.template.set(data.get("template", ""))
+                self.from_email.set(data.get("from_email", ""))
+                self.title.set(data.get("title", ""))
 
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = EmailSenderApp(root)
     root.mainloop()
-
