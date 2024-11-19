@@ -26,16 +26,24 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
+      - name: Debug Workspace
+        run: |
+          echo "Current workspace structure:"
+          ls -R
+
       - name: Build Executable
         run: |
           pyinstaller --onefile --name email_sender app.py
+          echo "Checking dist directory:"
+          ls -R dist
         shell: bash
 
       - name: Upload Executable
+        if: success()  # Only upload if the build was successful
         uses: actions/upload-artifact@v3
         with:
           name: email_sender-${{ matrix.os }}
-          path: dist/email_sender
+          path: dist/*
           
   release:
     needs: build
@@ -54,11 +62,15 @@ jobs:
         with:
           name: email_sender-windows-latest
 
+      - name: Debug Workspace
+        run: |
+          echo "Current workspace after downloading artifacts:"
+          ls -R
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            email_sender-ubuntu-latest/email_sender
-            email_sender-windows-latest/email_sender
+            dist/*
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
