@@ -140,10 +140,7 @@ class EmailSenderApp:
         title_entry.bind("<KeyRelease>", lambda event: self.save_storage())
 
     def load_file(self):
-        file_path = filedialog.askopenfilename(filetypes=[
-            ("CSV Files", "*.csv"),
-            ("Excel Files", "*.{xls,xlsx}")
-        ])
+        file_path = filedialog.askopenfilename()
         if not file_path:
             return
 
