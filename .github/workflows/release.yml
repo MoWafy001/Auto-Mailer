@@ -35,7 +35,6 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: email_sender-${{ matrix.os }}
-          path: dist/email_sender*
 
   release:
     needs: build
