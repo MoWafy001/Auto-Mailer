@@ -1,0 +1,6 @@
+pandas
+openpyxl
+pillow
+sendgrid
+tkinterhtml
+tkinterweb
