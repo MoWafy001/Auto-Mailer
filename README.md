@@ -16,7 +16,7 @@ Python Tkinter app used to automate sending emails using SendGrid. It works by e
 4. Send the emails. `(Send Emails Tab)`
 
 # Install
-You will need Python3 install as well as Pip3 to install and run the app.
+You will need **Python3** installed as well as **Pip3** to install and run the app.
 
 1. Create a virutal environment (optional)
 ```sh
