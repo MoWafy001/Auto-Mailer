@@ -71,6 +71,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dist/*
+            email_sender
+            email_sender.exe
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
