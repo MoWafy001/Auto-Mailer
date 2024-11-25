@@ -4,6 +4,7 @@ Python Tkinter app used to automate sending emails using SendGrid. It works by e
 <!-- vim-markdown-toc GFM -->
 
 * [Usage](#usage)
+* [Download](#download)
 * [Install](#install)
 * [Running The App](#running-the-app)
 
@@ -14,6 +15,9 @@ Python Tkinter app used to automate sending emails using SendGrid. It works by e
 2. Write an email template using _HTML_ or _plain text_. `(Template Tab)`
 3. Add your _sender email_, _SendGrid Token_, and the _email title_. `(Settings Tab)`
 4. Send the emails. `(Send Emails Tab)`
+
+# Download
+[releases](https://github.com/MoWafy001/Auto-Mailer/releases)
 
 # Install
 You will need **Python3** installed as well as **Pip3** to install and run the app.
